@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.todolist.domain.model.Task
 import com.example.todolist.domain.usecase.auth.GetCurrentUserUseCase
+import com.example.todolist.domain.usecase.auth.LogoutUseCase
 import com.example.todolist.domain.usecase.task.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
@@ -17,7 +18,8 @@ class TaskViewModel @Inject constructor(
     private val updateTaskUseCase: UpdateTaskUseCase,
     private val deleteTaskUseCase: DeleteTaskUseCase,
     private val toggleTaskCompleteUseCase: ToggleTaskCompleteUseCase,
-    private val getCurrentUserUseCase: GetCurrentUserUseCase
+    private val getCurrentUserUseCase: GetCurrentUserUseCase,
+    private val logoutUseCase: LogoutUseCase
 ) : ViewModel() {
 
     private val _taskUiState = MutableStateFlow<TaskUiState>(TaskUiState.Idle)
@@ -106,6 +108,18 @@ class TaskViewModel @Inject constructor(
 
     fun resetOperationState() {
         _taskOperationState.value = TaskOperationState.Idle
+    }
+
+    fun logout() {
+        viewModelScope.launch {
+            try {
+                logoutUseCase()
+            } finally {
+                currentUserId.value = null
+                _taskUiState.value = TaskUiState.Idle
+                _taskOperationState.value = TaskOperationState.Idle
+            }
+        }
     }
 }
 

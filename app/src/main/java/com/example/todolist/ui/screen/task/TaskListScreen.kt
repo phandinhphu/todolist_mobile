@@ -1,16 +1,28 @@
 package com.example.todolist.ui.screen.task
 
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
@@ -18,6 +30,7 @@ import com.example.todolist.domain.model.PriorityLevel
 import com.example.todolist.domain.model.Task
 import com.example.todolist.domain.model.TaskCategory
 import com.example.todolist.route.Routes
+import com.example.todolist.ui.components.TaskProgressCard
 import com.example.todolist.util.DateFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -38,24 +51,64 @@ fun TaskListScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("My Tasks") },
+                title = { 
+                    Text(
+                        "My Tasks",
+                        fontWeight = FontWeight.Bold
+                    ) 
+                },
+                actions = {
+                    IconButton(
+                        onClick = {
+                            viewModel.logout()
+                            navController.navigate(Routes.Login.route) {
+                                popUpTo(Routes.TaskList.route) { inclusive = true }
+                                launchSingleTop = true
+                            }
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ExitToApp,
+                            contentDescription = "Logout"
+                        )
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    actionIconContentColor = MaterialTheme.colorScheme.onPrimary
                 )
             )
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { navController.navigate(Routes.AddTask.route) }
+                onClick = { navController.navigate(Routes.AddTask.route) },
+                containerColor = MaterialTheme.colorScheme.primary,
+                shape = CircleShape,
+                elevation = FloatingActionButtonDefaults.elevation(
+                    defaultElevation = 8.dp,
+                    pressedElevation = 12.dp
+                )
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Add Task")
+                Icon(
+                    Icons.Default.Add,
+                    contentDescription = "Add Task",
+                    tint = MaterialTheme.colorScheme.onPrimary
+                )
             }
         }
     ) { paddingValues ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.05f),
+                            MaterialTheme.colorScheme.surface
+                        )
+                    )
+                )
                 .padding(paddingValues)
         ) {
             when (val state = taskUiState) {
@@ -76,49 +129,75 @@ fun TaskListScreen(
                     }
                 }
                 is TaskUiState.Success -> {
-                    if (state.tasks.isEmpty()) {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center
-                            ) {
-                                Text(
-                                    text = "No tasks yet",
-                                    style = MaterialTheme.typography.titleLarge
-                                )
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Text(
-                                    text = "Tap + to add a new task",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        item {
+                            TaskProgressCard(tasks = state.tasks)
                         }
-                    } else {
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
+
+                        if (state.tasks.isEmpty()) {
+                            item {
+                                Card(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 24.dp),
+                                    shape = RoundedCornerShape(20.dp),
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                                    )
+                                ) {
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(32.dp),
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.Center
+                                    ) {
+                                        Text(
+                                            text = "📝",
+                                            style = MaterialTheme.typography.displayLarge
+                                        )
+                                        Spacer(modifier = Modifier.height(16.dp))
+                                        Text(
+                                            text = "No tasks yet",
+                                            style = MaterialTheme.typography.titleLarge,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        Text(
+                                            text = "Tap + to add your first task",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
+                            }
+                        } else {
                             items(
                                 items = state.tasks,
                                 key = { it.id }
                             ) { task ->
-                                TaskItem(
-                                    task = task,
-                                    onTaskClick = {
-                                        navController.navigate(Routes.EditTask.createRoute(task.id))
-                                    },
-                                    onToggleComplete = {
-                                        viewModel.toggleTaskComplete(task.id)
-                                    },
-                                    onDelete = {
-                                        viewModel.deleteTask(task.id)
-                                    }
-                                )
+                                AnimatedVisibility(
+                                    visible = true,
+                                    enter = fadeIn() + expandVertically(),
+                                    exit = fadeOut() + shrinkVertically()
+                                ) {
+                                    TaskItem(
+                                        task = task,
+                                        onTaskClick = {
+                                            navController.navigate(Routes.EditTask.createRoute(task.id))
+                                        },
+                                        onToggleComplete = {
+                                            viewModel.toggleTaskComplete(task.id)
+                                        },
+                                        onDelete = {
+                                            viewModel.deleteTask(task.id)
+                                        }
+                                    )
+                                }
                             }
                         }
                     }
@@ -147,6 +226,8 @@ fun TaskListScreen(
     }
 }
 
+
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskItem(
@@ -155,15 +236,22 @@ fun TaskItem(
     onToggleComplete: () -> Unit,
     onDelete: () -> Unit
 ) {
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    
     Card(
         modifier = Modifier.fillMaxWidth(),
         onClick = onTaskClick,
+        shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
             containerColor = if (task.isCompleted) {
-                MaterialTheme.colorScheme.surfaceVariant
+                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
             } else {
                 MaterialTheme.colorScheme.surface
             }
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 2.dp,
+            pressedElevation = 8.dp
         )
     ) {
         Row(
@@ -173,10 +261,26 @@ fun TaskItem(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Checkbox(
-                checked = task.isCompleted,
-                onCheckedChange = { onToggleComplete() }
-            )
+            // Checkbox with custom icon
+            IconButton(
+                onClick = onToggleComplete,
+                modifier = Modifier.size(40.dp)
+            ) {
+                Icon(
+                    imageVector = if (task.isCompleted) {
+                        Icons.Default.CheckCircle
+                    } else {
+                        Icons.Default.RadioButtonUnchecked
+                    },
+                    contentDescription = if (task.isCompleted) "Mark incomplete" else "Mark complete",
+                    tint = if (task.isCompleted) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
+                    modifier = Modifier.size(28.dp)
+                )
+            }
 
             Column(
                 modifier = Modifier.weight(1f)
@@ -184,7 +288,13 @@ fun TaskItem(
                 Text(
                     text = task.title,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.SemiBold,
+                    textDecoration = if (task.isCompleted) TextDecoration.LineThrough else null,
+                    color = if (task.isCompleted) {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    } else {
+                        MaterialTheme.colorScheme.onSurface
+                    },
                     modifier = Modifier.fillMaxWidth()
                 )
                 
@@ -193,7 +303,8 @@ fun TaskItem(
                     Text(
                         text = task.description,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 2
                     )
                 }
 
@@ -201,52 +312,101 @@ fun TaskItem(
 
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     // Priority Chip
-                    AssistChip(
-                        onClick = { },
-                        label = {
-                            Text(
-                                text = task.priority.name,
-                                style = MaterialTheme.typography.labelSmall
-                            )
-                        },
-                        colors = AssistChipDefaults.assistChipColors(
-                            containerColor = getPriorityColor(task.priority)
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = getPriorityColor(task.priority).copy(alpha = 0.2f)
+                    ) {
+                        Text(
+                            text = when (task.priority) {
+                                PriorityLevel.HIGH -> "🔴 High"
+                                PriorityLevel.MEDIUM -> "🟡 Medium"
+                                PriorityLevel.LOW -> "🟢 Low"
+                            },
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Medium,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                         )
-                    )
+                    }
 
                     // Category Chip
-                    AssistChip(
-                        onClick = { },
-                        label = {
-                            Text(
-                                text = task.category.name,
-                                style = MaterialTheme.typography.labelSmall
-                            )
-                        }
-                    )
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
+                    ) {
+                        Text(
+                            text = when (task.category) {
+                                TaskCategory.PERSONAL -> "👤 Personal"
+                                TaskCategory.WORK -> "💼 Work"
+                                TaskCategory.STUDY -> "📚 Study"
+                            },
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Medium,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
+                    }
 
                     // Due Date
                     task.dueDate?.let { dueDate ->
-                        Text(
-                            text = DateFormatter.formatDate(dueDate),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.5f)
+                        ) {
+                            Text(
+                                text = "📅 ${DateFormatter.formatDate(dueDate)}",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Medium,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            )
+                        }
                     }
                 }
             }
 
-            IconButton(onClick = onDelete) {
+            // Delete Button
+            IconButton(
+                onClick = { showDeleteDialog = true },
+                modifier = Modifier.size(40.dp)
+            ) {
                 Icon(
                     imageVector = Icons.Default.Delete,
                     contentDescription = "Delete",
-                    tint = MaterialTheme.colorScheme.error
+                    tint = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.size(22.dp)
                 )
             }
         }
+    }
+
+    // Delete Confirmation Dialog
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("Delete Task") },
+            text = { Text("Are you sure you want to delete \"${task.title}\"?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onDelete()
+                        showDeleteDialog = false
+                    },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Cancel")
+                }
+            },
+            shape = RoundedCornerShape(20.dp)
+        )
     }
 }
 
