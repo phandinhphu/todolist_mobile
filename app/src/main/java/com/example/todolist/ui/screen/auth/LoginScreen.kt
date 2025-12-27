@@ -24,14 +24,13 @@ fun LoginScreen(
     var password by remember { mutableStateOf("") }
     var emailError by remember { mutableStateOf<String?>(null) }
     var passwordError by remember { mutableStateOf<String?>(null) }
-    var showDialog by remember { mutableStateOf(false) }
-    var dialogEmail by remember { mutableStateOf("") }
 
     LaunchedEffect(uiState) {
         when (uiState) {
             is AuthUiState.Success -> {
-                dialogEmail = (uiState as AuthUiState.Success).user.email ?: ""
-                showDialog = true
+                navController.navigate(Routes.TaskList.route) {
+                    popUpTo(Routes.Login.route) { inclusive = true }
+                }
             }
             else -> Unit
         }
@@ -119,19 +118,6 @@ fun LoginScreen(
         TextButton(onClick = { navController.navigate(Routes.Register.route) }) {
             Text("Don't have an account? Register")
         }
-    }
-
-    if (showDialog) {
-        AlertDialog(
-            onDismissRequest = { showDialog = false; viewModel.logout() },
-            confirmButton = {
-                TextButton(onClick = { showDialog = false; viewModel.logout() }) {
-                    Text("OK")
-                }
-            },
-            title = { Text("Login successful") },
-            text = { Text("Logged in as: $dialogEmail") }
-        )
     }
 }
 

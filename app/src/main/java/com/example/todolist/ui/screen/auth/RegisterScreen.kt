@@ -11,6 +11,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import com.example.todolist.route.Routes
 
 @Composable
 fun RegisterScreen(
@@ -29,8 +30,9 @@ fun RegisterScreen(
 
     LaunchedEffect(uiState) {
         if (uiState is AuthUiState.Success) {
-            // On successful registration, navigate back to Login
-            navController.popBackStack()
+            navController.navigate(Routes.TaskList.route) {
+                popUpTo(Routes.Register.route) { inclusive = true }
+            }
         }
     }
 

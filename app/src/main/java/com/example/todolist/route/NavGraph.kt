@@ -2,10 +2,14 @@ package com.example.todolist.route
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.example.todolist.ui.screen.auth.LoginScreen
 import com.example.todolist.ui.screen.auth.RegisterScreen
+import com.example.todolist.ui.screen.task.AddEditTaskScreen
+import com.example.todolist.ui.screen.task.TaskListScreen
 
 @Composable
 fun NavGraph(navController: NavHostController) {
@@ -20,6 +24,26 @@ fun NavGraph(navController: NavHostController) {
         composable(Routes.Register.route) {
             RegisterScreen(navController = navController)
         }
-        // Add more routes as needed
+        composable(Routes.TaskList.route) {
+            TaskListScreen(navController = navController)
+        }
+        composable(Routes.AddTask.route) {
+            AddEditTaskScreen(
+                navController = navController,
+                taskId = null
+            )
+        }
+        composable(
+            route = Routes.EditTask.route,
+            arguments = listOf(
+                navArgument("taskId") { type = NavType.LongType }
+            )
+        ) { backStackEntry ->
+            val taskId = backStackEntry.arguments?.getLong("taskId")
+            AddEditTaskScreen(
+                navController = navController,
+                taskId = taskId
+            )
+        }
     }
 }
