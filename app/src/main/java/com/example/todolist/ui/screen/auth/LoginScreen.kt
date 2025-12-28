@@ -39,10 +39,12 @@ fun LoginScreen(
     var passwordError by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(uiState) {
-        when (uiState) {
+        when (val state = uiState) {
             is AuthUiState.Success -> {
-                navController.navigate(Routes.Home.route) {
-                    popUpTo(Routes.Login.route) { inclusive = true }
+                if (state.user != null) {
+                    navController.navigate(Routes.Home.route) {
+                        popUpTo(Routes.Login.route) { inclusive = true }
+                    }
                 }
             }
             else -> Unit
@@ -209,6 +211,21 @@ fun LoginScreen(
             }
 
             Spacer(modifier = Modifier.height(24.dp))
+
+            // Forgot Password Link
+            TextButton(
+                onClick = { navController.navigate(Routes.ResetPassword.route) },
+                modifier = Modifier.align(Alignment.End)
+            ) {
+                Text(
+                    text = "Quên mật khẩu?",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
 
             // Register Link
             Row(

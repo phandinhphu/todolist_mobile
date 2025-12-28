@@ -3,8 +3,10 @@ package com.example.todolist.ui.components
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.List
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -35,13 +37,21 @@ sealed class BottomNavItem(
         selectedIcon = Icons.Filled.List,
         unselectedIcon = Icons.Outlined.List
     )
+
+    object Account : BottomNavItem(
+        route = Routes.Account.route,
+        title = "Account",
+        selectedIcon = Icons.Filled.Person,
+        unselectedIcon = Icons.Outlined.Person
+    )
 }
 
 @Composable
 fun BottomNavBar(navController: NavHostController) {
     val items = listOf(
         BottomNavItem.Home,
-        BottomNavItem.Tasks
+        BottomNavItem.Tasks,
+        BottomNavItem.Account
     )
     
     val navBackStackEntry by navController.currentBackStackEntryAsState()
