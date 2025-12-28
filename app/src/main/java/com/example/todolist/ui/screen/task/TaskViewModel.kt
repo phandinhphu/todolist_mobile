@@ -2,7 +2,9 @@ package com.example.todolist.ui.screen.task
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.todolist.domain.model.PriorityLevel
 import com.example.todolist.domain.model.Task
+import com.example.todolist.domain.model.TaskCategory
 import com.example.todolist.domain.usecase.auth.GetCurrentUserUseCase
 import com.example.todolist.domain.usecase.auth.LogoutUseCase
 import com.example.todolist.domain.usecase.task.*
@@ -10,7 +12,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-
+import com.example.todolist.domain.model.TaskFilter
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 @HiltViewModel
 class TaskViewModel @Inject constructor(
     private val getTasksUseCase: GetTasksUseCase,
@@ -22,6 +25,9 @@ class TaskViewModel @Inject constructor(
     private val logoutUseCase: LogoutUseCase
 ) : ViewModel() {
 
+    private val _filterState = MutableStateFlow(TaskFilter())
+    val filterState = _filterState.asStateFlow()
+
     private val _taskUiState = MutableStateFlow<TaskUiState>(TaskUiState.Idle)
     val taskUiState: StateFlow<TaskUiState> = _taskUiState.asStateFlow()
 
@@ -29,6 +35,7 @@ class TaskViewModel @Inject constructor(
     val taskOperationState: StateFlow<TaskOperationState> = _taskOperationState.asStateFlow()
 
     private val currentUserId = MutableStateFlow<String?>(null)
+
 
     init {
         loadCurrentUser()
@@ -40,16 +47,20 @@ class TaskViewModel @Inject constructor(
         currentUserId.value = user?.uid
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     private fun observeTasks() {
         viewModelScope.launch {
-            currentUserId
-                .filterNotNull()
-                .flatMapLatest { userId ->
-                    getTasksUseCase(userId)
-                }
-                .collect { tasks ->
-                    _taskUiState.value = TaskUiState.Success(tasks)
-                }
+            // Sử dụng combine để tự động tải lại danh sách khi UserId HOẶC Bộ lọc thay đổi
+            combine(
+                currentUserId.filterNotNull(),
+                _filterState
+            ) { userId, filter ->
+                Pair(userId, filter)
+            }.flatMapLatest { (userId, filter) ->
+                getTasksUseCase(userId, filter) // Gọi UseCase với bộ lọc
+            }.collect { tasks ->
+                _taskUiState.value = TaskUiState.Success(tasks)
+            }
         }
     }
 
@@ -121,6 +132,23 @@ class TaskViewModel @Inject constructor(
             }
         }
     }
+    // --- CÁC HÀM XỬ LÝ SỰ KIỆN LỌC ---
+
+    fun onSearchQueryChanged(newQuery: String) {
+        _filterState.value = _filterState.value.copy(searchQuery = newQuery.ifBlank { null })
+    }
+
+    fun onCategorySelected(category: TaskCategory?) {
+        // Nếu chọn lại category đang chọn thì bỏ lọc (null)
+        val nextCategory = if (_filterState.value.category == category) null else category
+        _filterState.value = _filterState.value.copy(category = nextCategory)
+    }
+
+    fun onPrioritySelected(priority: PriorityLevel?) {
+        val nextPriority = if (_filterState.value.priority == priority) null else priority
+        _filterState.value = _filterState.value.copy(priority = nextPriority)
+    }
+
 }
 
 

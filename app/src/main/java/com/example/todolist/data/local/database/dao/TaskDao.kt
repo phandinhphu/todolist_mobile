@@ -23,5 +23,22 @@ interface TaskDao {
 
     @Query("UPDATE tasks SET isCompleted = NOT isCompleted WHERE id = :taskId")
     suspend fun toggleTaskComplete(taskId: Long)
+
+    @Query("""
+        SELECT * FROM tasks 
+        WHERE userId = :userId 
+        AND (:searchQuery IS NULL OR title LIKE '%' || :searchQuery || '%')
+        AND (:category IS NULL OR category = :category)
+        AND (:priority IS NULL OR priority = :priority)
+        AND (:isCompleted IS NULL OR isCompleted = :isCompleted)
+        ORDER BY createdAt DESC
+    """)
+    fun getFilteredTasks(
+        userId: String,
+        searchQuery: String?,
+        category: String?,
+        priority: String?,
+        isCompleted: Boolean?
+    ): Flow<List<TaskEntity>>
 }
 

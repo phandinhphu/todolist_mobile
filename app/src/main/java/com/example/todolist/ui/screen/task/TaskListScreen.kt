@@ -1,7 +1,6 @@
 package com.example.todolist.ui.screen.task
 
 import androidx.compose.animation.*
-import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -18,8 +17,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
@@ -30,6 +27,7 @@ import com.example.todolist.domain.model.PriorityLevel
 import com.example.todolist.domain.model.Task
 import com.example.todolist.domain.model.TaskCategory
 import com.example.todolist.route.Routes
+import com.example.todolist.ui.components.TaskFilterSection
 import com.example.todolist.ui.components.TaskProgressCard
 import com.example.todolist.util.DateFormatter
 
@@ -41,6 +39,7 @@ fun TaskListScreen(
 ) {
     val taskUiState by viewModel.taskUiState.collectAsState()
     val taskOperationState by viewModel.taskOperationState.collectAsState()
+    val filterState by viewModel.filterState.collectAsState()
 
     LaunchedEffect(taskOperationState) {
         if (taskOperationState is TaskOperationState.Success) {
@@ -131,13 +130,25 @@ fun TaskListScreen(
                 is TaskUiState.Success -> {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(16.dp),
+                        contentPadding = PaddingValues(start = 13.dp,
+                            end = 13.dp,
+                            top = 13.dp, bottom = 80.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
+                        // Header: Progress Card
                         item {
                             TaskProgressCard(tasks = state.tasks)
                         }
-
+                        // Thanh tìm kiếm và bộ lọc
+                        item {
+                            TaskFilterSection(
+                                filter = filterState,
+                                onSearchChange = { viewModel.onSearchQueryChanged(it) },
+                                onCategoryChange = { viewModel.onCategorySelected(it) },
+                                onPriorityChange = { viewModel.onPrioritySelected(it) }
+                            )
+                        }
+                        // Danh sách công việc
                         if (state.tasks.isEmpty()) {
                             item {
                                 Card(
