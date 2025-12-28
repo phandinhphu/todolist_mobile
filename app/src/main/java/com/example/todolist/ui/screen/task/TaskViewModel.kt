@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import com.example.todolist.domain.model.TaskFilter
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 @HiltViewModel
 class TaskViewModel @Inject constructor(
     private val getTasksUseCase: GetTasksUseCase,
@@ -46,6 +47,7 @@ class TaskViewModel @Inject constructor(
         currentUserId.value = user?.uid
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     private fun observeTasks() {
         viewModelScope.launch {
             // Sử dụng combine để tự động tải lại danh sách khi UserId HOẶC Bộ lọc thay đổi
@@ -147,9 +149,6 @@ class TaskViewModel @Inject constructor(
         _filterState.value = _filterState.value.copy(priority = nextPriority)
     }
 
-    fun clearAllFilters() {
-        _filterState.value = TaskFilter()
-    }
 }
 
 

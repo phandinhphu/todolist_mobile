@@ -5,8 +5,6 @@ import com.example.todolist.data.mapper.toDomain
 import com.example.todolist.data.mapper.toEntity
 import com.example.todolist.domain.model.Task
 import com.example.todolist.domain.model.TaskFilter
-import com.example.todolist.domain.model.TaskCategory // Thêm dòng này để hết lỗi CharCategory
-import com.example.todolist.domain.model.PriorityLevel
 import com.example.todolist.domain.repository.TaskRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
