@@ -7,4 +7,6 @@ interface AuthRepository {
     suspend fun login(email: String, password: String): User
     suspend fun logout(): Unit
     fun getCurrentUser(): User?
+    suspend fun changePassword(newPassword: String): Unit
+    suspend fun resetPassword(email: String): Unit
 }

@@ -15,6 +15,16 @@ class FirebaseAuthDataSource(
         firebaseAuth.createUserWithEmailAndPassword(email, password).await().user
             ?: throw Exception("Đăng ký thất bại")
 
+    suspend fun changePassword(newPassword: String) {
+        val user = firebaseAuth.currentUser
+            ?: throw Exception("Người dùng chưa đăng nhập")
+        user.updatePassword(newPassword).await()
+    }
+
+    suspend fun resetPassword(email: String) {
+        firebaseAuth.sendPasswordResetEmail(email).await()
+    }
+
     fun getCurrentUser(): FirebaseUser? = firebaseAuth.currentUser
 
     fun logout() = firebaseAuth.signOut()

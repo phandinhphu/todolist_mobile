@@ -5,6 +5,7 @@ import android.app.TimePickerDialog
 import android.widget.DatePicker
 import android.widget.TimePicker
 import androidx.compose.animation.*
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -18,8 +19,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
@@ -235,15 +238,13 @@ fun AddEditTaskScreen(
                     // Category Selection Card
                     Card(
                         shape = RoundedCornerShape(20.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surface
-                        ),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-                    ) {
+                    ){
                         Column(modifier = Modifier.padding(16.dp)) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                horizontalArrangement = Arrangement.spacedBy(7.dp)
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Category,
@@ -263,20 +264,15 @@ fun AddEditTaskScreen(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 TaskCategory.entries.forEach { category ->
-                                    FilterChip(
-                                        selected = selectedCategory == category,
-                                        onClick = { selectedCategory = category },
-                                        label = {
-                                            Text(
-                                                when (category) {
-                                                    TaskCategory.PERSONAL -> "👤 Personal"
-                                                    TaskCategory.WORK -> "💼 Work"
-                                                    TaskCategory.STUDY -> "📚 Study"
-                                                }
-                                            )
+                                    SelectableChip(
+                                        label = when (category) {
+                                            TaskCategory.PERSONAL -> "👤 Personal"
+                                            TaskCategory.WORK -> "💼 Work"
+                                            TaskCategory.STUDY -> "📚 Study"
                                         },
-                                        modifier = Modifier.weight(1f),
-                                        shape = RoundedCornerShape(12.dp)
+                                        isSelected = selectedCategory == category,
+                                        onClick = { selectedCategory = category },
+                                        modifier = Modifier.weight(1f)
                                     )
                                 }
                             }
@@ -294,7 +290,7 @@ fun AddEditTaskScreen(
                         Column(modifier = Modifier.padding(16.dp)) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                horizontalArrangement = Arrangement.spacedBy(7.dp)
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Flag,
@@ -314,20 +310,15 @@ fun AddEditTaskScreen(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 PriorityLevel.entries.forEach { priority ->
-                                    FilterChip(
-                                        selected = selectedPriority == priority,
-                                        onClick = { selectedPriority = priority },
-                                        label = {
-                                            Text(
-                                                when (priority) {
-                                                    PriorityLevel.HIGH -> "🔴 High"
-                                                    PriorityLevel.MEDIUM -> "🟡 Medium"
-                                                    PriorityLevel.LOW -> "🟢 Low"
-                                                }
-                                            )
+                                    SelectableChip(
+                                        label = when (priority) {
+                                            PriorityLevel.HIGH -> "🔴 High"
+                                            PriorityLevel.MEDIUM -> "🟡 Medium"
+                                            PriorityLevel.LOW -> "🟢 Low"
                                         },
-                                        modifier = Modifier.weight(1f),
-                                        shape = RoundedCornerShape(12.dp)
+                                        isSelected = selectedPriority == priority,
+                                        onClick = { selectedPriority = priority },
+                                        modifier = Modifier.weight(1f)
                                     )
                                 }
                             }
@@ -655,6 +646,43 @@ fun TagSelectionSection(viewModel: TaskViewModel) {
                     )
                 )
             }
+        }
+    }
+}
+@Composable
+fun SelectableChip(
+    label: String,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val backgroundColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent
+    val contentColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+    val borderColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+
+    Surface(
+        onClick = onClick,
+        modifier = modifier.height(42.dp), // Giảm nhẹ chiều cao để trông thanh thoát hơn
+        shape = RoundedCornerShape(12.dp),
+        color = backgroundColor,
+        contentColor = contentColor,
+        border = BorderStroke(1.dp, borderColor)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 4.dp), // Padding nhỏ để chữ không chạm biên khi quá dài
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = label,
+                // Sử dụng bodySmall hoặc labelSmall để cỡ chữ nhỏ hơn, dễ vừa khung hơn
+                style = MaterialTheme.typography.bodySmall,
+                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                maxLines = 1,
+                overflow = TextOverflow.Clip, // Giữ nguyên để cố gắng hiển thị đủ
+                softWrap = false
+            )
         }
     }
 }

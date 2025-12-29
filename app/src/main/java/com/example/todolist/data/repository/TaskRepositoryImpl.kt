@@ -4,6 +4,7 @@ import com.example.todolist.data.local.database.dao.TaskDao
 import com.example.todolist.data.mapper.toDomain
 import com.example.todolist.data.mapper.toEntity
 import com.example.todolist.domain.model.Task
+import com.example.todolist.domain.model.TaskFilter
 import com.example.todolist.domain.repository.TaskRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -12,9 +13,15 @@ import javax.inject.Inject
 class TaskRepositoryImpl @Inject constructor(
     private val taskDao: TaskDao
 ) : TaskRepository {
-    override fun getAllTasks(userId: String): Flow<List<Task>> {
-        return taskDao.getAllTasks(userId).map { tasks ->
-            tasks.map { it.toDomain() }
+    override fun getAllTasks(userId: String, filter: TaskFilter): Flow<List<Task>> {
+        return taskDao.getFilteredTasks(
+            userId = userId,
+            searchQuery = filter.searchQuery,
+            category = filter.category?.name,
+            priority = filter.priority?.name,
+            isCompleted = filter.isCompleted
+        ).map { entities ->
+            entities.map { it.toDomain() }
         }
     }
 

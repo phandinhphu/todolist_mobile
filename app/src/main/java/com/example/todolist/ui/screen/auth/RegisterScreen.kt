@@ -40,10 +40,15 @@ fun RegisterScreen(
     var confirmError by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(uiState) {
-        if (uiState is AuthUiState.Success) {
-            navController.navigate(Routes.Home.route) {
-                popUpTo(Routes.Register.route) { inclusive = true }
+        when (val state = uiState) {
+            is AuthUiState.Success -> {
+                if (state.user != null) {
+                    navController.navigate(Routes.Home.route) {
+                        popUpTo(Routes.Register.route) { inclusive = true }
+                    }
+                }
             }
+            else -> Unit
         }
     }
 

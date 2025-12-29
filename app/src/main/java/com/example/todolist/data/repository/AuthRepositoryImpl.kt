@@ -32,4 +32,20 @@ class AuthRepositoryImpl(
         val firebaseUser = firebaseAuthDataSource.getCurrentUser()
         return firebaseUser?.toDomain()
     }
+
+    override suspend fun changePassword(newPassword: String) {
+        try {
+            firebaseAuthDataSource.changePassword(newPassword)
+        } catch (e: Exception) {
+            throw Exception("Lỗi khi đổi mật khẩu: ${e.message}")
+        }
+    }
+
+    override suspend fun resetPassword(email: String) {
+        try {
+            firebaseAuthDataSource.resetPassword(email)
+        } catch (e: Exception) {
+            throw Exception("Lỗi khi gửi email đặt lại mật khẩu: ${e.message}")
+        }
+    }
 }

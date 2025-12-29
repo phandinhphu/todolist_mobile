@@ -1,7 +1,6 @@
 package com.example.todolist.ui.screen.task
 
 import androidx.compose.animation.*
-import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -10,7 +9,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
-import androidx.compose.material.icons.automirrored.filled.Label
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
@@ -31,10 +29,10 @@ import com.example.todolist.domain.model.PriorityLevel
 import com.example.todolist.domain.model.Task
 import com.example.todolist.domain.model.TaskCategory
 import com.example.todolist.route.Routes
+import com.example.todolist.ui.components.TaskFilterSection
 import com.example.todolist.ui.components.TaskProgressCard
 import com.example.todolist.util.DateFormatter
 import androidx.core.graphics.toColorInt
-import androidx.lifecycle.viewmodel.compose.viewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,6 +42,7 @@ fun TaskListScreen(
 ) {
     val taskUiState by viewModel.taskUiState.collectAsState()
     val taskOperationState by viewModel.taskOperationState.collectAsState()
+    val filterState by viewModel.filterState.collectAsState()
 
     LaunchedEffect(taskOperationState) {
         if (taskOperationState is TaskOperationState.Success) {
@@ -146,13 +145,25 @@ fun TaskListScreen(
                 is TaskUiState.Success -> {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(16.dp),
+                        contentPadding = PaddingValues(start = 13.dp,
+                            end = 13.dp,
+                            top = 13.dp, bottom = 80.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
+                        // Header: Progress Card
                         item {
                             TaskProgressCard(tasks = state.tasks)
                         }
-
+                        // Thanh tìm kiếm và bộ lọc
+                        item {
+                            TaskFilterSection(
+                                filter = filterState,
+                                onSearchChange = { viewModel.onSearchQueryChanged(it) },
+                                onCategoryChange = { viewModel.onCategorySelected(it) },
+                                onPriorityChange = { viewModel.onPrioritySelected(it) }
+                            )
+                        }
+                        // Danh sách công việc
                         if (state.tasks.isEmpty()) {
                             item {
                                 Card(

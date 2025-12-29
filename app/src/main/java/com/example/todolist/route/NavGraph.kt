@@ -12,8 +12,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import com.example.todolist.ui.components.BottomNavBar
+import com.example.todolist.ui.screen.account.AccountScreen
 import com.example.todolist.ui.screen.auth.LoginScreen
 import com.example.todolist.ui.screen.auth.RegisterScreen
+import com.example.todolist.ui.screen.auth.ResetPasswordScreen
 import com.example.todolist.ui.screen.home.HomeScreen
 import com.example.todolist.ui.screen.tag.TagScreen
 import com.example.todolist.ui.screen.task.AddEditTaskScreen
@@ -25,7 +27,7 @@ fun NavGraph(navController: NavHostController) {
     val currentRoute = navBackStackEntry?.destination?.route
     
     // Screens that should show bottom navigation
-    val screensWithBottomNav = listOf(Routes.Home.route, Routes.TaskList.route, Routes.TagManagement.route)
+    val screensWithBottomNav = listOf(Routes.Home.route, Routes.TaskList.route, Routes.Account.route)
     val showBottomBar = currentRoute in screensWithBottomNav
 
     Scaffold(
@@ -45,6 +47,9 @@ fun NavGraph(navController: NavHostController) {
             }
             composable(Routes.Register.route) {
                 RegisterScreen(navController = navController)
+            }
+            composable(Routes.ResetPassword.route) {
+                ResetPasswordScreen(navController = navController)
             }
             composable(Routes.Home.route) {
                 HomeScreen(navController = navController)
@@ -76,6 +81,9 @@ fun NavGraph(navController: NavHostController) {
                         navController.popBackStack()
                     }
                 )
+            }
+            composable(Routes.Account.route) {
+                AccountScreen(navController = navController)
             }
         }
     }
