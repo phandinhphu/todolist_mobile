@@ -2,9 +2,14 @@ package com.example.todolist.ui.screen.task
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.todolist.domain.model.Tag
 import com.example.todolist.domain.model.Task
 import com.example.todolist.domain.usecase.auth.GetCurrentUserUseCase
 import com.example.todolist.domain.usecase.auth.LogoutUseCase
+import com.example.todolist.domain.usecase.tag.AddTagToTaskUseCase
+import com.example.todolist.domain.usecase.tag.GetTagsUseCase
+import com.example.todolist.domain.usecase.tag.GetTaskWithTagsUseCase
+import com.example.todolist.domain.usecase.tag.RemoveTagFromTaskUseCase
 import com.example.todolist.domain.usecase.task.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
@@ -19,7 +24,13 @@ class TaskViewModel @Inject constructor(
     private val deleteTaskUseCase: DeleteTaskUseCase,
     private val toggleTaskCompleteUseCase: ToggleTaskCompleteUseCase,
     private val getCurrentUserUseCase: GetCurrentUserUseCase,
-    private val logoutUseCase: LogoutUseCase
+    private val logoutUseCase: LogoutUseCase,
+
+    private val getTagsUseCase: GetTagsUseCase,
+    private val getTaskWithTagsUseCase: GetTaskWithTagsUseCase,
+    private val addTagToTaskUseCase: AddTagToTaskUseCase,
+    private val removeTagFromTaskUseCase: RemoveTagFromTaskUseCase
+
 ) : ViewModel() {
 
     private val _taskUiState = MutableStateFlow<TaskUiState>(TaskUiState.Idle)
@@ -29,6 +40,18 @@ class TaskViewModel @Inject constructor(
     val taskOperationState: StateFlow<TaskOperationState> = _taskOperationState.asStateFlow()
 
     private val currentUserId = MutableStateFlow<String?>(null)
+
+    private val _selectedTagIds = MutableStateFlow<Set<Long>>(emptySet())
+    val selectedTagIds: StateFlow<Set<Long>> = _selectedTagIds.asStateFlow()
+
+    // Lấy danh sách tất cả các thẻ để hiển thị
+    val allTags: StateFlow<List<Tag>> = getTagsUseCase()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+    private var initialTagIds: Set<Long> = emptySet()
 
     init {
         loadCurrentUser()
@@ -64,7 +87,8 @@ class TaskViewModel @Inject constructor(
             _taskOperationState.value = TaskOperationState.Loading
             try {
                 val taskWithUserId = task.copy(userId = userId)
-                addTaskUseCase(taskWithUserId)
+                val taskId = addTaskUseCase(taskWithUserId)
+                updateTags(taskId)
                 _taskOperationState.value = TaskOperationState.Success
             } catch (e: Exception) {
                 _taskOperationState.value = TaskOperationState.Error(e.message ?: "Failed to add task")
@@ -77,6 +101,7 @@ class TaskViewModel @Inject constructor(
             _taskOperationState.value = TaskOperationState.Loading
             try {
                 updateTaskUseCase(task)
+                updateTags(task.id)
                 _taskOperationState.value = TaskOperationState.Success
             } catch (e: Exception) {
                 _taskOperationState.value = TaskOperationState.Error(e.message ?: "Failed to update task")
@@ -120,6 +145,63 @@ class TaskViewModel @Inject constructor(
                 _taskOperationState.value = TaskOperationState.Idle
             }
         }
+    }
+
+    fun toggleTagSelection(tagId: Long) {
+        _selectedTagIds.update { currentSet ->
+            if (currentSet.contains(tagId)) {
+                // chon roi thi bo chon
+                currentSet - tagId
+            } else {
+                if (currentSet.size < 3) {
+                    // chưa đu
+                    currentSet + tagId
+                } else {
+                    currentSet
+                }
+            }
+        }
+    }
+
+    suspend fun updateTags(taskId: Long) {
+        val newIds = _selectedTagIds.value
+        val oldIds = initialTagIds
+
+        //Tìm những nhãn mới được thêm vào
+        val tagsToAdd = newIds.minus(oldIds)
+        tagsToAdd.forEach { tagId ->
+            addTagToTaskUseCase(taskId, tagId)
+        }
+
+        //Tìm những nhãn đã bị bỏ chọn để xóa đi
+        val tagsToRemove = oldIds.minus(newIds)
+        tagsToRemove.forEach { tagId ->
+            removeTagFromTaskUseCase(taskId, tagId)
+        }
+        initialTagIds = newIds
+    }
+
+    fun loadTaskDetails(taskId: Long) {
+        viewModelScope.launch {
+            // 1. Lấy dữ liệu từ Database 📂
+            val taskWithTags = getTaskWithTagsUseCase(taskId).first()
+
+            // 2. Trích xuất danh sách ID bằng hàm map (như bạn đã nói ở trên) 🗺️
+            val ids = taskWithTags.tags.map { it.id }.toSet()
+
+            // 3. Đưa vào các danh sách để quản lý
+            _selectedTagIds.value = ids
+            initialTagIds = ids
+        }
+    }
+
+    fun prepareForNewTask() {
+        _selectedTagIds.value = emptySet()
+        initialTagIds = emptySet()
+    }
+
+    fun getTagsForTask(taskId: Long): Flow<List<Tag>> {
+        return getTaskWithTagsUseCase(taskId).map { it.tags }
     }
 }
 

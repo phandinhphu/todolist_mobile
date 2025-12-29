@@ -15,6 +15,7 @@ import com.example.todolist.ui.components.BottomNavBar
 import com.example.todolist.ui.screen.auth.LoginScreen
 import com.example.todolist.ui.screen.auth.RegisterScreen
 import com.example.todolist.ui.screen.home.HomeScreen
+import com.example.todolist.ui.screen.tag.TagScreen
 import com.example.todolist.ui.screen.task.AddEditTaskScreen
 import com.example.todolist.ui.screen.task.TaskListScreen
 
@@ -24,7 +25,7 @@ fun NavGraph(navController: NavHostController) {
     val currentRoute = navBackStackEntry?.destination?.route
     
     // Screens that should show bottom navigation
-    val screensWithBottomNav = listOf(Routes.Home.route, Routes.TaskList.route)
+    val screensWithBottomNav = listOf(Routes.Home.route, Routes.TaskList.route, Routes.TagManagement.route)
     val showBottomBar = currentRoute in screensWithBottomNav
 
     Scaffold(
@@ -67,6 +68,13 @@ fun NavGraph(navController: NavHostController) {
                 AddEditTaskScreen(
                     navController = navController,
                     taskId = taskId
+                )
+            }
+            composable(Routes.TagManagement.route) {
+                TagScreen(
+                    onBack = {
+                        navController.popBackStack()
+                    }
                 )
             }
         }

@@ -26,7 +26,6 @@ import androidx.navigation.NavHostController
 import com.example.todolist.domain.model.PriorityLevel
 import com.example.todolist.domain.model.Task
 import com.example.todolist.domain.model.TaskCategory
-import com.example.todolist.route.Routes
 import com.example.todolist.util.DateFormatter
 import java.util.Calendar
 
@@ -116,6 +115,13 @@ fun AddEditTaskScreen(
             viewModel.resetOperationState()
         }
     }
+
+    LaunchedEffect(taskId) {
+        taskId?.let { id ->
+            viewModel.loadTaskDetails(id)
+        }
+    }
+
 
     Scaffold(
         topBar = {
@@ -225,6 +231,7 @@ fun AddEditTaskScreen(
                         }
                     }
 
+                    TagSelectionSection(viewModel)
                     // Category Selection Card
                     Card(
                         shape = RoundedCornerShape(20.dp),
@@ -559,6 +566,94 @@ fun AddEditTaskScreen(
                     
                     Spacer(modifier = Modifier.height(16.dp))
                 }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
+@Composable
+fun TagSelectionSection(viewModel: TaskViewModel) {
+    val allTags by viewModel.allTags.collectAsState()
+    val selectedIds by viewModel.selectedTagIds.collectAsState()
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        // Tiêu đề Section kèm Icon giống style My Tasks
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Label,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(20.dp)
+            )
+            Text(
+                text = "Tags",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.weight(1f))
+            // Hiển thị số lượng đã chọn (0/3)
+            Text(
+                text = "${selectedIds.size}/3",
+                style = MaterialTheme.typography.labelMedium,
+                color = if (selectedIds.size >= 3) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        // Vùng chứa các Chip sử dụng FlowRow
+        FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            allTags.forEach { tag ->
+                val isSelected = selectedIds.contains(tag.id)
+
+                // Sử dụng FilterChip với Style bo tròn 8dp giống Priority Chip của bạn
+                FilterChip(
+                    selected = isSelected,
+                    onClick = { viewModel.toggleTagSelection(tag.id) },
+                    label = {
+                        Text(
+                            text = tag.name,
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Medium
+                        )
+                    },
+                    shape = RoundedCornerShape(8.dp), // Đồng bộ với Priority/Category Chip
+                    leadingIcon = if (isSelected) {
+                        {
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    } else null,
+                    colors = FilterChipDefaults.filterChipColors(
+                        // Khi chọn: dùng màu Primary Container
+                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        // Khi chưa chọn: dùng màu xám nhạt giống SurfaceVariant của bạn
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                        labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    ),
+                    border = FilterChipDefaults.filterChipBorder(
+                        enabled = true,
+                        selected = isSelected,
+                        borderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                        selectedBorderColor = MaterialTheme.colorScheme.primary
+                    )
+                )
             }
         }
     }

@@ -9,4 +9,5 @@ sealed class Routes(val route: String) {
     object EditTask : Routes("edit_task/{taskId}") {
         fun createRoute(taskId: Long) = "edit_task/$taskId"
     }
+    object TagManagement : Routes("tag_management")
 }
