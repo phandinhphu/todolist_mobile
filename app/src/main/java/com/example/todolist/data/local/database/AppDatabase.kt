@@ -4,6 +4,7 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.example.todolist.data.local.database.converter.Converters
+import com.example.todolist.data.local.database.dao.TagDao
 import com.example.todolist.data.local.database.dao.TaskDao
 import com.example.todolist.data.local.database.entity.*
 
@@ -19,4 +20,5 @@ import com.example.todolist.data.local.database.entity.*
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun taskDao(): TaskDao
+    abstract fun tagDao(): TagDao
 }

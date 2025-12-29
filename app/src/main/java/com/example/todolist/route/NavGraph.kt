@@ -17,6 +17,7 @@ import com.example.todolist.ui.screen.auth.LoginScreen
 import com.example.todolist.ui.screen.auth.RegisterScreen
 import com.example.todolist.ui.screen.auth.ResetPasswordScreen
 import com.example.todolist.ui.screen.home.HomeScreen
+import com.example.todolist.ui.screen.tag.TagScreen
 import com.example.todolist.ui.screen.task.AddEditTaskScreen
 import com.example.todolist.ui.screen.task.TaskListScreen
 
@@ -72,6 +73,13 @@ fun NavGraph(navController: NavHostController) {
                 AddEditTaskScreen(
                     navController = navController,
                     taskId = taskId
+                )
+            }
+            composable(Routes.TagManagement.route) {
+                TagScreen(
+                    onBack = {
+                        navController.popBackStack()
+                    }
                 )
             }
             composable(Routes.Account.route) {

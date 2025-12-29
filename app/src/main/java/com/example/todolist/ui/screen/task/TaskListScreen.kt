@@ -12,11 +12,13 @@ import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Label
 import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
@@ -30,6 +32,7 @@ import com.example.todolist.route.Routes
 import com.example.todolist.ui.components.TaskFilterSection
 import com.example.todolist.ui.components.TaskProgressCard
 import com.example.todolist.util.DateFormatter
+import androidx.core.graphics.toColorInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,6 +60,15 @@ fun TaskListScreen(
                     ) 
                 },
                 actions = {
+                    IconButton(onClick = {
+                        // Điều hướng dựa trên Route đã khai báo
+                        navController.navigate(Routes.TagManagement.route)
+                    }) {
+                        Icon(
+                            imageVector = Icons.Default.Label, // Biểu tượng chiếc nhãn 🏷️
+                            contentDescription = "Quản lý thẻ"
+                        )
+                    }
                     IconButton(
                         onClick = {
                             viewModel.logout()
@@ -81,7 +93,10 @@ fun TaskListScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { navController.navigate(Routes.AddTask.route) },
+                onClick = {
+                    viewModel.prepareForNewTask()
+                    navController.navigate(Routes.AddTask.route)
+                          },
                 containerColor = MaterialTheme.colorScheme.primary,
                 shape = CircleShape,
                 elevation = FloatingActionButtonDefaults.elevation(
@@ -206,7 +221,8 @@ fun TaskListScreen(
                                         },
                                         onDelete = {
                                             viewModel.deleteTask(task.id)
-                                        }
+                                        },
+                                        viewModel = viewModel
                                     )
                                 }
                             }
@@ -245,7 +261,8 @@ fun TaskItem(
     task: Task,
     onTaskClick: () -> Unit,
     onToggleComplete: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    viewModel: TaskViewModel = hiltViewModel(),
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
     
@@ -308,6 +325,8 @@ fun TaskItem(
                     },
                     modifier = Modifier.fillMaxWidth()
                 )
+
+                TaskTagsRow(taskId = task.id, viewModel = viewModel)
                 
                 if (!task.description.isNullOrBlank()) {
                     Spacer(modifier = Modifier.height(4.dp))
@@ -430,3 +449,40 @@ fun getPriorityColor(priority: PriorityLevel): androidx.compose.ui.graphics.Colo
     }
 }
 
+@Composable
+fun TaskTagsRow(taskId: Long, viewModel: TaskViewModel) {
+    val tags by viewModel.getTagsForTask(taskId).collectAsState(initial = emptyList())
+
+    if (tags.isNotEmpty()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            tags.take(3).forEach { tag ->
+                Column(
+                    modifier = Modifier.width(IntrinsicSize.Max),
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    Text(
+                        text = tag.name,
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1 // Đảm bảo không xuống dòng làm lệch đường kẻ
+                    )
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(3.dp)
+                            .padding(top = 1.dp)
+                            .clip(CircleShape)
+                            .background(androidx.compose.ui.graphics.Color(tag.color.toColorInt()))
+                    )
+                }
+            }
+        }
+    }
+}
