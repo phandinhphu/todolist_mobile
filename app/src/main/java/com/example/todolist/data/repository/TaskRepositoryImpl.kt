@@ -19,6 +19,7 @@ class TaskRepositoryImpl @Inject constructor(
             searchQuery = filter.searchQuery,
             category = filter.category?.name,
             priority = filter.priority?.name,
+            tagId = filter.tagId,
             isCompleted = filter.isCompleted
         ).map { entities ->
             entities.map { it.toDomain() }
