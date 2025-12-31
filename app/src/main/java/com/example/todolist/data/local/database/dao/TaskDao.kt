@@ -30,6 +30,7 @@ interface TaskDao {
         AND (:searchQuery IS NULL OR title LIKE '%' || :searchQuery || '%')
         AND (:category IS NULL OR category = :category)
         AND (:priority IS NULL OR priority = :priority)
+        AND (:tagId IS NULL OR EXISTS ( SELECT 1 FROM task_tag_cross_ref WHERE taskId = tasks.id AND tagId = :tagId ))
         AND (:isCompleted IS NULL OR isCompleted = :isCompleted)
         ORDER BY createdAt DESC
     """)
@@ -38,6 +39,7 @@ interface TaskDao {
         searchQuery: String?,
         category: String?,
         priority: String?,
+        tagId: Long?,
         isCompleted: Boolean?
     ): Flow<List<TaskEntity>>
 }

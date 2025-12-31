@@ -43,6 +43,7 @@ fun TaskListScreen(
     val taskUiState by viewModel.taskUiState.collectAsState()
     val taskOperationState by viewModel.taskOperationState.collectAsState()
     val filterState by viewModel.filterState.collectAsState()
+    val allTags by viewModel.allTags.collectAsState()
 
     LaunchedEffect(taskOperationState) {
         if (taskOperationState is TaskOperationState.Success) {
@@ -158,9 +159,12 @@ fun TaskListScreen(
                         item {
                             TaskFilterSection(
                                 filter = filterState,
+                                allTags = allTags,
                                 onSearchChange = { viewModel.onSearchQueryChanged(it) },
                                 onCategoryChange = { viewModel.onCategorySelected(it) },
-                                onPriorityChange = { viewModel.onPrioritySelected(it) }
+                                onPriorityChange = { viewModel.onPrioritySelected(it) },
+                                onTagChange = { viewModel.onTagSelected(it) },
+                                onStatusChange = { viewModel.onStatusFilterSelected(it) }
                             )
                         }
                         // Danh sách công việc

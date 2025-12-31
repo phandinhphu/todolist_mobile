@@ -228,6 +228,17 @@ class TaskViewModel @Inject constructor(
         val nextPriority = if (_filterState.value.priority == priority) null else priority
         _filterState.value = _filterState.value.copy(priority = nextPriority)
     }
+
+    fun onTagSelected(tagId: Long?) {
+        val nextTagId = if (_filterState.value.tagId == tagId) null else tagId
+        _filterState.value = _filterState.value.copy(tagId = nextTagId)
+    }
+
+    fun onStatusFilterSelected(isCompleted: Boolean?) {
+        // Nếu chọn lại cái đang được chọn thì trả về null (Tất cả)
+        val nextStatus = if (_filterState.value.isCompleted == isCompleted) null else isCompleted
+        _filterState.value = _filterState.value.copy(isCompleted = nextStatus)
+    }
 }
 
 

@@ -12,7 +12,10 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -30,14 +33,17 @@ import androidx.compose.ui.unit.dp
 import com.example.todolist.domain.model.PriorityLevel
 import com.example.todolist.domain.model.TaskCategory
 import com.example.todolist.domain.model.TaskFilter
-
+import com.example.todolist.domain.model.Tag
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskFilterSection(
     filter: TaskFilter,
+    allTags: List<Tag>,
     onSearchChange: (String) -> Unit,
     onCategoryChange: (TaskCategory?) -> Unit,
     onPriorityChange: (PriorityLevel?) -> Unit,
+    onTagChange: (Long?) -> Unit,
+    onStatusChange: (Boolean?) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
@@ -79,7 +85,7 @@ fun TaskFilterSection(
                     onClick = { onCategoryChange(category) },
                     label = { Text(category.name.lowercase().replaceFirstChar { it.uppercase() }) },
                     leadingIcon = if (filter.category == category) {
-                        { Icon(Icons.Default.Search, modifier = Modifier.size(16.dp), contentDescription = null) }
+                        { Icon(Icons.AutoMirrored.Filled.List, modifier = Modifier.size(16.dp), contentDescription = null) }
                     } else null
                 )
             }
@@ -98,6 +104,56 @@ fun TaskFilterSection(
                     )
                 )
             }
+
+            // Đường kẻ chia cách nhẹ
+            item { VerticalDivider(modifier = Modifier.height(32.dp).padding(horizontal = 4.dp)) }
+
+            // Lọc theo tag
+            items(allTags) { tag ->
+                FilterChip(
+                    selected = filter.tagId == tag.id,
+                    onClick = { onTagChange(tag.id) },
+                    label = { Text("#${tag.name}") },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = MaterialTheme.colorScheme.tertiaryContainer
+                    )
+                )
+            }
+
+            // Đường kẻ chia cách nhẹ
+            item { VerticalDivider(modifier = Modifier.height(32.dp).padding(horizontal = 4.dp)) }
+
+            // Lọc theo trạng thái hoàn thành (IsCompleted)
+            item {
+                FilterChip(
+                    selected = filter.isCompleted == false,
+                    onClick = { onStatusChange(false) },
+                    label = { Text("Doing") },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.RadioButtonUnchecked,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                )
+            }
+
+            item {
+                FilterChip(
+                    selected = filter.isCompleted == true,
+                    onClick = { onStatusChange(true) },
+                    label = { Text("Done") },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.CheckCircle,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                )
+            }
+
         }
     }
 }
