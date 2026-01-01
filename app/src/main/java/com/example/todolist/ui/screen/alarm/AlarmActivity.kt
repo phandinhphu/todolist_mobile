@@ -40,6 +40,28 @@ class AlarmActivity : ComponentActivity() {
                         onDismiss = {
                             viewModel.stopAlarm()
                             finishAndRemoveTask() // Completely close
+                        },
+                        onViewDetails = {
+                            viewModel.stopAlarm()
+                            val taskId = intent.getLongExtra(ReminderReceiver.EXTRA_TASK_ID, -1L)
+                            if (taskId != -1L) {
+                                val detailsIntent =
+                                        android.content.Intent(
+                                                        this@AlarmActivity,
+                                                        com.example.todolist.MainActivity::class
+                                                                .java
+                                                )
+                                                .apply {
+                                                    flags =
+                                                            android.content.Intent
+                                                                    .FLAG_ACTIVITY_NEW_TASK or
+                                                                    android.content.Intent
+                                                                            .FLAG_ACTIVITY_CLEAR_TASK
+                                                    putExtra(ReminderReceiver.EXTRA_TASK_ID, taskId)
+                                                }
+                                startActivity(detailsIntent)
+                            }
+                            finishAndRemoveTask()
                         }
                 )
             }

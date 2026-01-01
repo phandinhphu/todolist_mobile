@@ -53,7 +53,14 @@ class ReminderReceiver : BroadcastReceiver() {
 
             // Optionally also show a high priority notification if screen is unlocked and activity
             // doesn't pop
-            val alarmNotification = notificationHelper.buildAlarmNotification(taskId, title, desc)
+            val alarmNotification =
+                    notificationHelper.buildAlarmNotification(
+                            taskId,
+                            title,
+                            desc,
+                            category,
+                            priority
+                    )
             notificationHelper.notify(taskId.toInt() * 10 + 1, alarmNotification)
         }
     }
