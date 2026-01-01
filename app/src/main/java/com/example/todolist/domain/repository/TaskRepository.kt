@@ -10,5 +10,6 @@ interface TaskRepository {
     suspend fun updateTask(task: Task)
     suspend fun deleteTask(taskId: Long)
     suspend fun toggleTaskComplete(taskId: Long)
+    suspend fun getAllReminders(): List<Task>
 }
 

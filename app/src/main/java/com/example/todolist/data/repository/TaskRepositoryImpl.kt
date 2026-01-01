@@ -45,5 +45,9 @@ class TaskRepositoryImpl @Inject constructor(
     override suspend fun toggleTaskComplete(taskId: Long) {
         taskDao.toggleTaskComplete(taskId)
     }
+
+    override suspend fun getAllReminders(): List<Task> {
+        return taskDao.getAllReminders(System.currentTimeMillis()).map { it.toDomain() }
+    }
 }
 

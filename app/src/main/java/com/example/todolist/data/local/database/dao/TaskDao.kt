@@ -42,5 +42,8 @@ interface TaskDao {
         tagId: Long?,
         isCompleted: Boolean?
     ): Flow<List<TaskEntity>>
+
+    @Query("SELECT * FROM tasks WHERE reminderTime IS NOT NULL AND reminderTime > :currentTime")
+    suspend fun getAllReminders(currentTime: Long): List<TaskEntity>
 }
 

@@ -13,6 +13,7 @@ import com.example.todolist.domain.usecase.tag.GetTagsUseCase
 import com.example.todolist.domain.usecase.tag.GetTaskWithTagsUseCase
 import com.example.todolist.domain.usecase.tag.RemoveTagFromTaskUseCase
 import com.example.todolist.domain.usecase.task.*
+import com.example.todolist.data.manager.ReminderManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -32,8 +33,9 @@ class TaskViewModel @Inject constructor(
     private val getTagsUseCase: GetTagsUseCase,
     private val getTaskWithTagsUseCase: GetTaskWithTagsUseCase,
     private val addTagToTaskUseCase: AddTagToTaskUseCase,
-    private val removeTagFromTaskUseCase: RemoveTagFromTaskUseCase
+    private val removeTagFromTaskUseCase: RemoveTagFromTaskUseCase,
 
+    private val reminderManager: ReminderManager
 ) : ViewModel() {
 
     private val _filterState = MutableStateFlow(TaskFilter())
@@ -99,6 +101,10 @@ class TaskViewModel @Inject constructor(
                 val taskWithUserId = task.copy(userId = userId)
                 val taskId = addTaskUseCase(taskWithUserId)
                 updateTags(taskId)
+                
+                // Schedule reminder
+                reminderManager.scheduleReminder(taskWithUserId.copy(id = taskId))
+                
                 _taskOperationState.value = TaskOperationState.Success
             } catch (e: Exception) {
                 _taskOperationState.value = TaskOperationState.Error(e.message ?: "Failed to add task")
@@ -112,6 +118,14 @@ class TaskViewModel @Inject constructor(
             try {
                 updateTaskUseCase(task)
                 updateTags(task.id)
+                
+                // Update reminder
+                if (task.reminderTime != null) {
+                    reminderManager.scheduleReminder(task)
+                } else {
+                    reminderManager.cancelReminder(task.id)
+                }
+                
                 _taskOperationState.value = TaskOperationState.Success
             } catch (e: Exception) {
                 _taskOperationState.value = TaskOperationState.Error(e.message ?: "Failed to update task")
@@ -124,6 +138,7 @@ class TaskViewModel @Inject constructor(
             _taskOperationState.value = TaskOperationState.Loading
             try {
                 deleteTaskUseCase(taskId)
+                reminderManager.cancelReminder(taskId)
                 _taskOperationState.value = TaskOperationState.Success
             } catch (e: Exception) {
                 _taskOperationState.value = TaskOperationState.Error(e.message ?: "Failed to delete task")
