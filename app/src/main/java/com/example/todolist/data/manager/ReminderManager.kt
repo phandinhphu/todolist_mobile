@@ -39,13 +39,6 @@ class ReminderManager @Inject constructor(@ApplicationContext private val contex
         }
 
         // 2. Schedule Exact Alarm
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            if (!alarmManager.canScheduleExactAlarms()) {
-                // ideally, handle permission request in UI
-                return
-            }
-        }
-
         scheduleAlarm(
                 taskId = task.id,
                 time = reminderTime,
@@ -90,7 +83,17 @@ class ReminderManager @Inject constructor(@ApplicationContext private val contex
                         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                 )
 
-        alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, time, pendingIntent)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (alarmManager.canScheduleExactAlarms()) {
+                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, time, pendingIntent)
+            } else {
+                // Fallback for when permission is not granted: use standard setAndAllowWhileIdle
+                // (inexact)
+                alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, time, pendingIntent)
+            }
+        } else {
+            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, time, pendingIntent)
+        }
     }
 
     private fun cancelAlarm(taskId: Long, type: Int) {

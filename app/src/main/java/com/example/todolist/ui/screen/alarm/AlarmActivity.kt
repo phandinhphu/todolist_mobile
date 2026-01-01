@@ -1,6 +1,7 @@
 package com.example.todolist.ui.screen.alarm
 
 import android.app.KeyguardManager
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.view.WindowManager
@@ -28,7 +29,7 @@ class AlarmActivity : ComponentActivity() {
         val priority = intent.getStringExtra(ReminderReceiver.EXTRA_TASK_PRIORITY)
 
         // Start playing alarm immediately
-        viewModel.startAlarm()
+        // viewModel.startAlarm() // Handled by AlarmService
 
         setContent {
             ToDoListTheme {
@@ -38,25 +39,46 @@ class AlarmActivity : ComponentActivity() {
                         category = category,
                         priority = priority,
                         onDismiss = {
-                            viewModel.stopAlarm()
+                            val stopIntent =
+                                    Intent(
+                                                    this@AlarmActivity,
+                                                    com.example.todolist.service.AlarmService::class
+                                                            .java
+                                            )
+                                            .apply {
+                                                action =
+                                                        com.example.todolist.service.AlarmService
+                                                                .ACTION_STOP
+                                            }
+                            startService(stopIntent)
                             finishAndRemoveTask() // Completely close
                         },
                         onViewDetails = {
-                            viewModel.stopAlarm()
+                            val stopIntent =
+                                    Intent(
+                                                    this@AlarmActivity,
+                                                    com.example.todolist.service.AlarmService::class
+                                                            .java
+                                            )
+                                            .apply {
+                                                action =
+                                                        com.example.todolist.service.AlarmService
+                                                                .ACTION_STOP
+                                            }
+                            startService(stopIntent)
+
                             val taskId = intent.getLongExtra(ReminderReceiver.EXTRA_TASK_ID, -1L)
                             if (taskId != -1L) {
                                 val detailsIntent =
-                                        android.content.Intent(
+                                        Intent(
                                                         this@AlarmActivity,
                                                         com.example.todolist.MainActivity::class
                                                                 .java
                                                 )
                                                 .apply {
                                                     flags =
-                                                            android.content.Intent
-                                                                    .FLAG_ACTIVITY_NEW_TASK or
-                                                                    android.content.Intent
-                                                                            .FLAG_ACTIVITY_CLEAR_TASK
+                                                            Intent.FLAG_ACTIVITY_NEW_TASK or
+                                                                    Intent.FLAG_ACTIVITY_CLEAR_TASK
                                                     putExtra(ReminderReceiver.EXTRA_TASK_ID, taskId)
                                                 }
                                 startActivity(detailsIntent)

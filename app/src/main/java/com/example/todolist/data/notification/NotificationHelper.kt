@@ -43,18 +43,17 @@ class NotificationHelper @Inject constructor(@ApplicationContext private val con
                                 NotificationChannel(
                                                 CHANNEL_ALARM_ID,
                                                 "Alarms",
-                                                NotificationManager.IMPORTANCE_HIGH
+                                                NotificationManager
+                                                        .IMPORTANCE_HIGH // Critical for Heads-up
                                         )
                                         .apply {
                                                 description = "Critical alarms for tasks"
                                                 enableLights(true)
                                                 enableVibration(true)
-                                                setSound(
-                                                        null,
-                                                        null
-                                                ) // Sound is handled by MediaPlayer/Ringtone
-                                                // manually for exact
-                                                // control
+                                                vibrationPattern = longArrayOf(0, 500, 500, 500)
+                                                lockscreenVisibility =
+                                                        Notification.VISIBILITY_PUBLIC
+                                                setSound(null, null)
                                         }
 
                         notificationManager.createNotificationChannel(earlyChannel)
@@ -104,14 +103,15 @@ class NotificationHelper @Inject constructor(@ApplicationContext private val con
                 // Intent for Full Screen Activity (AlarmActivity)
                 val fullScreenIntent =
                         Intent(
-                                context,
-                                com.example.todolist.ui.screen.alarm.AlarmActivity::class
-                                        .java
+                                        context,
+                                        com.example.todolist.ui.screen.alarm.AlarmActivity::class
+                                                .java
                                 )
                                 .apply {
                                         flags =
                                                 Intent.FLAG_ACTIVITY_NEW_TASK or
-                                                        Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                                        Intent.FLAG_ACTIVITY_CLEAR_TASK or
+                                                        Intent.FLAG_ACTIVITY_NO_USER_ACTION
                                         putExtra(ReminderReceiver.EXTRA_TASK_ID, taskId)
                                         putExtra(ReminderReceiver.EXTRA_TASK_TITLE, title)
                                         putExtra(ReminderReceiver.EXTRA_TASK_DESC, desc)
@@ -144,30 +144,68 @@ class NotificationHelper @Inject constructor(@ApplicationContext private val con
                                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                         )
 
+                // Intent for "Dismiss" action (Service Stop)
+                val dismissIntent =
+                        Intent(context, com.example.todolist.service.AlarmService::class.java)
+                                .apply {
+                                        action =
+                                                com.example.todolist.service.AlarmService
+                                                        .ACTION_STOP
+                                }
+                val dismissPendingIntent =
+                        PendingIntent.getService(
+                                context,
+                                taskId.toInt() * 10 + 3,
+                                dismissIntent,
+                                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                        )
+
                 val largeIcon =
                         android.graphics.BitmapFactory.decodeResource(
                                 context.resources,
                                 R.mipmap.ic_launcher_round
                         )
 
-                return NotificationCompat.Builder(context, CHANNEL_ALARM_ID)
-                        .setSmallIcon(R.mipmap.ic_launcher_round)
-                        .setLargeIcon(largeIcon)
-                        .setContentTitle("ALARM: $title")
-                        .setContentText(desc)
-                        .setPriority(NotificationCompat.PRIORITY_HIGH)
-                        .setCategory(NotificationCompat.CATEGORY_ALARM)
-                        .setFullScreenIntent(fullScreenPendingIntent, true)
-                        .setContentIntent(
-                                fullScreenPendingIntent
-                        ) // Content click also opens AlarmActivity
-                        .setAutoCancel(true)
-                        .addAction(
-                                android.R.drawable.ic_menu_view,
-                                "View Details",
-                                viewDetailsPendingIntent
-                        )
-                        .build()
+                val keyguardManager =
+                        context.getSystemService(Context.KEYGUARD_SERVICE) as
+                                android.app.KeyguardManager
+
+                val builder =
+                        NotificationCompat.Builder(context, CHANNEL_ALARM_ID)
+                                .setSmallIcon(R.mipmap.ic_launcher_round)
+                                .setLargeIcon(largeIcon)
+                                .setContentTitle("ALARM: $title")
+                                .setContentText(desc)
+                                .setPriority(NotificationCompat.PRIORITY_MAX)
+                                .setCategory(NotificationCompat.CATEGORY_ALARM)
+                                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                                .setContentIntent(fullScreenPendingIntent)
+                                .setOngoing(true)
+                                .setAutoCancel(false)
+                                .setColor(
+                                        androidx.core.content.ContextCompat.getColor(
+                                                context,
+                                                R.color.purple_500
+                                        )
+                                )
+                                .setVibrate(longArrayOf(0L, 500L, 500L, 500L))
+                                .addAction(
+                                        android.R.drawable.ic_menu_view,
+                                        "View Details",
+                                        viewDetailsPendingIntent
+                                )
+                                .addAction(
+                                        android.R.drawable.ic_menu_close_clear_cancel,
+                                        "Dismiss",
+                                        dismissPendingIntent
+                                )
+                                .setDeleteIntent(dismissPendingIntent)
+                                .setDefaults(NotificationCompat.DEFAULT_ALL)
+                                .setFullScreenIntent(fullScreenPendingIntent, true)
+
+                val notification = builder.build()
+                notification.flags = notification.flags or Notification.FLAG_INSISTENT
+                return notification
         }
 
         fun notify(id: Int, notification: Notification) {
