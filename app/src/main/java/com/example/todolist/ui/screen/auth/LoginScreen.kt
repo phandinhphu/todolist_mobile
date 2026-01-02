@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.example.todolist.route.Routes
+import com.example.todolist.ui.components.clearFocusOnTap
 
 @Composable
 fun LoginScreen(
@@ -54,6 +55,7 @@ fun LoginScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .clearFocusOnTap()
             .background(
                 Brush.verticalGradient(
                     colors = listOf(

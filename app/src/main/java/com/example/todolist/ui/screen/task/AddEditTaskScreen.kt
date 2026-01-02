@@ -29,6 +29,7 @@ import androidx.navigation.NavHostController
 import com.example.todolist.domain.model.PriorityLevel
 import com.example.todolist.domain.model.Task
 import com.example.todolist.domain.model.TaskCategory
+import com.example.todolist.ui.components.clearFocusOnTap
 import com.example.todolist.util.DateFormatter
 import java.util.Calendar
 
@@ -151,6 +152,7 @@ fun AddEditTaskScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .clearFocusOnTap()
                 .background(
                     Brush.verticalGradient(
                         colors = listOf(

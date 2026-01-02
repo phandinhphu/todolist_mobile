@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.example.todolist.route.Routes
+import com.example.todolist.ui.components.clearFocusOnTap
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,6 +31,7 @@ fun AccountScreen(
     viewModel: AccountViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.accountUiState.collectAsState()
+    val widgetEnabled by viewModel.widgetEnabled.collectAsState()
     var showChangePasswordDialog by remember { mutableStateOf(false) }
     var showLogoutDialog by remember { mutableStateOf(false) }
 
@@ -76,6 +78,7 @@ fun AccountScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
+                .clearFocusOnTap()
                 .background(
                     Brush.verticalGradient(
                         colors = listOf(
@@ -138,6 +141,38 @@ fun AccountScreen(
                             subtitle = "Đăng xuất khỏi tài khoản",
                             iconTint = MaterialTheme.colorScheme.error,
                             onClick = { showLogoutDialog = true }
+                        )
+                    }
+                }
+
+                // Switch for Widget Enable/Disable
+                Spacer(modifier = Modifier.height(24.dp))
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Widget công việc hôm nay",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Switch(
+                            checked = widgetEnabled,
+                            onCheckedChange = { enabled ->
+                                viewModel.onWidgetToggle(enabled)
+                            },
+                            colors = SwitchDefaults.colors(
+                                checkedThumbColor = MaterialTheme.colorScheme.primary,
+                                uncheckedThumbColor = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         )
                     }
                 }

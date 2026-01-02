@@ -5,6 +5,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -12,6 +13,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import com.example.todolist.ui.components.BottomNavBar
+import com.example.todolist.ui.root.AppAuthViewModel
 import com.example.todolist.ui.screen.account.AccountScreen
 import com.example.todolist.ui.screen.auth.LoginScreen
 import com.example.todolist.ui.screen.auth.RegisterScreen
@@ -22,7 +24,10 @@ import com.example.todolist.ui.screen.task.AddEditTaskScreen
 import com.example.todolist.ui.screen.task.TaskListScreen
 
 @Composable
-fun NavGraph(navController: NavHostController) {
+fun NavGraph(
+    navController: NavHostController,
+    appAuthViewModel: AppAuthViewModel = hiltViewModel()
+) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
     
@@ -39,7 +44,7 @@ fun NavGraph(navController: NavHostController) {
     ) { paddingValues ->
         NavHost(
             navController = navController,
-            startDestination = Routes.Login.route,
+            startDestination = appAuthViewModel.startDestination,
             modifier = if (showBottomBar) Modifier.padding(paddingValues) else Modifier
         ) {
             composable(Routes.Login.route) {

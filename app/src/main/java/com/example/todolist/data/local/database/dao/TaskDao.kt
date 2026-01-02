@@ -45,5 +45,8 @@ interface TaskDao {
 
     @Query("SELECT * FROM tasks WHERE reminderTime IS NOT NULL AND reminderTime > :currentTime")
     suspend fun getAllReminders(currentTime: Long): List<TaskEntity>
+
+    @Query("SELECT * FROM tasks WHERE userId = :userId AND createdAt <= :endOfDay AND (dueDate IS NULL OR dueDate >= :startOfDay)")
+    suspend fun getTasksForDateRange(userId: String, startOfDay: Long, endOfDay: Long): List<TaskEntity>
 }
 
