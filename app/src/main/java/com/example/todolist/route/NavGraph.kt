@@ -22,6 +22,7 @@ import com.example.todolist.ui.screen.home.HomeScreen
 import com.example.todolist.ui.screen.tag.TagScreen
 import com.example.todolist.ui.screen.task.AddEditTaskScreen
 import com.example.todolist.ui.screen.task.TaskListScreen
+import com.example.todolist.ui.screen.calendar.CalendarScreen
 
 @Composable
 fun NavGraph(
@@ -32,7 +33,7 @@ fun NavGraph(
     val currentRoute = navBackStackEntry?.destination?.route
     
     // Screens that should show bottom navigation
-    val screensWithBottomNav = listOf(Routes.Home.route, Routes.TaskList.route, Routes.Account.route)
+    val screensWithBottomNav = listOf(Routes.Home.route, Routes.TaskList.route, Routes.Account.route, Routes.Calendar.route)
     val showBottomBar = currentRoute in screensWithBottomNav
 
     Scaffold(
@@ -62,10 +63,31 @@ fun NavGraph(
             composable(Routes.TaskList.route) {
                 TaskListScreen(navController = navController)
             }
-            composable(Routes.AddTask.route) {
+            composable(Routes.Calendar.route) {
+                CalendarScreen(
+                    onTaskClick = { task ->
+                        navController.navigate(Routes.EditTask.createRoute(task.id))
+                    },
+                    onDateDoubleClick = { date ->
+                        val dateInMillis = date.atStartOfDay(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
+                        navController.navigate(Routes.AddTask.createRoute(dateInMillis))
+                    }
+                )
+            }
+            composable(
+                route = Routes.AddTask.route,
+                arguments = listOf(
+                    navArgument("date") { 
+                        type = NavType.LongType 
+                        defaultValue = -1L
+                    }
+                )
+            ) { backStackEntry ->
+                val date = backStackEntry.arguments?.getLong("date")?.takeIf { it != -1L }
                 AddEditTaskScreen(
                     navController = navController,
-                    taskId = null
+                    taskId = null,
+                    initialDate = date
                 )
             }
             composable(

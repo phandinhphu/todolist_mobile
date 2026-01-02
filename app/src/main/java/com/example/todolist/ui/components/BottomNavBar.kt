@@ -17,6 +17,8 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.todolist.route.Routes
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.outlined.DateRange
 
 sealed class BottomNavItem(
     val route: String,
@@ -38,6 +40,13 @@ sealed class BottomNavItem(
         unselectedIcon = Icons.Outlined.List
     )
 
+    object Calendar : BottomNavItem(
+        route = Routes.Calendar.route,
+        title = "Calendar",
+        selectedIcon = Icons.Filled.DateRange,
+        unselectedIcon = Icons.Outlined.DateRange
+    )
+
     object Account : BottomNavItem(
         route = Routes.Account.route,
         title = "Account",
@@ -51,6 +60,7 @@ fun BottomNavBar(navController: NavHostController) {
     val items = listOf(
         BottomNavItem.Home,
         BottomNavItem.Tasks,
+        BottomNavItem.Calendar,
         BottomNavItem.Account
     )
     

@@ -41,9 +41,9 @@ class AlarmActivity : ComponentActivity() {
                         onDismiss = {
                             val stopIntent =
                                     Intent(
-                                                    this@AlarmActivity,
-                                                    com.example.todolist.service.AlarmService::class
-                                                            .java
+                                            this@AlarmActivity,
+                                            com.example.todolist.service.AlarmService::class
+                                                .java
                                             )
                                             .apply {
                                                 action =

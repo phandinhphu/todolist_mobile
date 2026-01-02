@@ -33,20 +33,35 @@ interface TaskDao {
         AND (:tagId IS NULL OR EXISTS ( SELECT 1 FROM task_tag_cross_ref WHERE taskId = tasks.id AND tagId = :tagId ))
         AND (:isCompleted IS NULL OR isCompleted = :isCompleted)
         ORDER BY createdAt DESC
-    """)
+    """
+    )
     fun getFilteredTasks(
-        userId: String,
-        searchQuery: String?,
-        category: String?,
-        priority: String?,
-        tagId: Long?,
-        isCompleted: Boolean?
+            userId: String,
+            searchQuery: String?,
+            category: String?,
+            priority: String?,
+            tagId: Long?,
+            isCompleted: Boolean?
     ): Flow<List<TaskEntity>>
 
     @Query("SELECT * FROM tasks WHERE reminderTime IS NOT NULL AND reminderTime > :currentTime")
     suspend fun getAllReminders(currentTime: Long): List<TaskEntity>
 
-    @Query("SELECT * FROM tasks WHERE userId = :userId AND createdAt <= :endOfDay AND (dueDate IS NULL OR dueDate >= :startOfDay)")
-    suspend fun getTasksForDateRange(userId: String, startOfDay: Long, endOfDay: Long): List<TaskEntity>
-}
+    @Query(
+            "SELECT * FROM tasks WHERE userId = :userId AND createdAt <= :endOfDay AND (dueDate IS NULL OR dueDate >= :startOfDay)"
+    )
+    suspend fun getTasksForDateRange(
+            userId: String,
+            startOfDay: Long,
+            endOfDay: Long
+    ): List<TaskEntity>
 
+    @Query(
+            "SELECT * FROM tasks WHERE userId = :userId AND dueDate >= :startOfDay AND dueDate <= :endOfDay"
+    )
+    suspend fun getTasksByDueDate(
+            userId: String,
+            startOfDay: Long,
+            endOfDay: Long
+    ): List<TaskEntity>
+}

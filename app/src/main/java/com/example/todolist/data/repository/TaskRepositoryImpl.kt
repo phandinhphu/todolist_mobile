@@ -8,26 +8,23 @@ import com.example.todolist.data.mapper.toEntity
 import com.example.todolist.domain.model.Task
 import com.example.todolist.domain.model.TaskFilter
 import com.example.todolist.domain.repository.TaskRepository
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 import java.time.LocalDate
 import java.time.ZoneId
 import javax.inject.Inject
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
-class TaskRepositoryImpl @Inject constructor(
-    private val taskDao: TaskDao
-) : TaskRepository {
+class TaskRepositoryImpl @Inject constructor(private val taskDao: TaskDao) : TaskRepository {
     override fun getAllTasks(userId: String, filter: TaskFilter): Flow<List<Task>> {
         return taskDao.getFilteredTasks(
-            userId = userId,
-            searchQuery = filter.searchQuery,
-            category = filter.category?.name,
-            priority = filter.priority?.name,
-            tagId = filter.tagId,
-            isCompleted = filter.isCompleted
-        ).map { entities ->
-            entities.map { it.toDomain() }
-        }
+                        userId = userId,
+                        searchQuery = filter.searchQuery,
+                        category = filter.category?.name,
+                        priority = filter.priority?.name,
+                        tagId = filter.tagId,
+                        isCompleted = filter.isCompleted
+                )
+                .map { entities -> entities.map { it.toDomain() } }
     }
 
     override suspend fun getTaskById(taskId: Long): Task? {
@@ -58,20 +55,18 @@ class TaskRepositoryImpl @Inject constructor(
     override suspend fun getTodayTasks(userId: String): List<Task> {
         val zoneId = ZoneId.systemDefault()
 
-        val startOfDay = LocalDate.now()
-            .atStartOfDay(zoneId)
-            .toInstant()
-            .toEpochMilli()
+        val startOfDay = LocalDate.now().atStartOfDay(zoneId).toInstant().toEpochMilli()
 
-        val endOfDay = LocalDate.now()
-            .plusDays(1)
-            .atStartOfDay(zoneId)
-            .toInstant()
-            .toEpochMilli()
+        val endOfDay = LocalDate.now().plusDays(1).atStartOfDay(zoneId).toInstant().toEpochMilli()
 
-        return taskDao
-            .getTasksForDateRange(userId, startOfDay, endOfDay)
-            .map { it.toDomain() }
+        return taskDao.getTasksForDateRange(userId, startOfDay, endOfDay).map { it.toDomain() }
+    }
+
+    override suspend fun getTasksByDueDate(
+            userId: String,
+            startOfDay: Long,
+            endOfDay: Long
+    ): List<Task> {
+        return taskDao.getTasksByDueDate(userId, startOfDay, endOfDay).map { it.toDomain() }
     }
 }
-

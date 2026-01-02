@@ -1,8 +1,9 @@
 package com.example.todolist.domain.repository
 
 import com.example.todolist.domain.model.Task
-import kotlinx.coroutines.flow.Flow
 import com.example.todolist.domain.model.TaskFilter
+import kotlinx.coroutines.flow.Flow
+
 interface TaskRepository {
     fun getAllTasks(userId: String, filter: TaskFilter): Flow<List<Task>>
     suspend fun getTaskById(taskId: Long): Task?
@@ -12,5 +13,5 @@ interface TaskRepository {
     suspend fun toggleTaskComplete(taskId: Long)
     suspend fun getAllReminders(): List<Task>
     suspend fun getTodayTasks(userId: String): List<Task>
+    suspend fun getTasksByDueDate(userId: String, startOfDay: Long, endOfDay: Long): List<Task>
 }
-

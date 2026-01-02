@@ -38,6 +38,7 @@ import java.util.Calendar
 fun AddEditTaskScreen(
     navController: NavHostController,
     taskId: Long? = null,
+    initialDate: Long? = null,
     viewModel: TaskViewModel = hiltViewModel()
 ) {
     val taskOperationState by viewModel.taskOperationState.collectAsState()
@@ -48,7 +49,7 @@ fun AddEditTaskScreen(
     var description by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf(TaskCategory.PERSONAL) }
     var selectedPriority by remember { mutableStateOf(PriorityLevel.MEDIUM) }
-    var dueDate by remember { mutableStateOf<Long?>(null) }
+    var dueDate by remember { mutableStateOf<Long?>(initialDate) }
     var reminderTime by remember { mutableStateOf<Long?>(null) }
     var hasLoadedTask by remember { mutableStateOf(false) }
     
@@ -63,7 +64,7 @@ fun AddEditTaskScreen(
             description = ""
             selectedCategory = TaskCategory.PERSONAL
             selectedPriority = PriorityLevel.MEDIUM
-            dueDate = null
+            dueDate = initialDate
             reminderTime = null
             hasLoadedTask = false
         } else {
