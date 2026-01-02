@@ -17,8 +17,11 @@ import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import com.example.todolist.ui.screen.task.TaskOperationState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -44,7 +47,29 @@ fun CalendarScreen(
         onDateDoubleClick: (LocalDate) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val taskOperationState by taskViewModel.taskOperationState.collectAsState()
     var totalDragAmount = 0f
+
+    // Refresh when returning to the screen
+    val lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current
+    androidx.compose.runtime.DisposableEffect(lifecycleOwner) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
+                viewModel.refresh()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
+    LaunchedEffect(taskOperationState) {
+        if (taskOperationState is TaskOperationState.Success) {
+            viewModel.refresh()
+            taskViewModel.resetOperationState()
+        }
+    }
 
     LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         item {
@@ -115,7 +140,10 @@ fun CalendarScreen(
                     )
                 }
             } else {
-                items(uiState.tasks) { task ->
+                items(
+                    items = uiState.tasks,
+                    key = { it.id }
+                ) { task ->
                     TaskItem(
                         task = task,
                         onTaskClick = { onTaskClick(task) },

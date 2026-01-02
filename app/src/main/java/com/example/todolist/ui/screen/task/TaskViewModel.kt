@@ -150,6 +150,7 @@ class TaskViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 toggleTaskCompleteUseCase(taskId)
+                _taskOperationState.value = TaskOperationState.Success
             } catch (e: Exception) {
                 _taskOperationState.value = TaskOperationState.Error(e.message ?: "Failed to toggle task")
             }
@@ -225,7 +226,9 @@ class TaskViewModel @Inject constructor(
     }
 
     fun getTagsForTask(taskId: Long): Flow<List<Tag>> {
-        return getTaskWithTagsUseCase(taskId).map { it.tags }
+        return getTaskWithTagsUseCase(taskId)
+            .map { it.tags }
+            .catch { emit(emptyList()) }
     }
     // --- CÁC HÀM XỬ LÝ SỰ KIỆN LỌC ---
 

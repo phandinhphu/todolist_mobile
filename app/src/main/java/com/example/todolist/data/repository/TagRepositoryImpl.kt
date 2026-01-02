@@ -8,6 +8,7 @@ import com.example.todolist.data.mapper.toDomain
 import com.example.todolist.data.mapper.toEntity
 import com.example.todolist.domain.repository.TagRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
@@ -42,6 +43,6 @@ class TagRepositoryImpl @Inject constructor(
     }
 
     override fun getTaskWithTags(taskId: Long): Flow<TaskWithTags> {
-        return tagDao.getTaskWithTags(taskId).map { it.toDomain() }
+        return tagDao.getTaskWithTags(taskId).filterNotNull().map { it.toDomain() }
     }
 }

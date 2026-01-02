@@ -35,6 +35,11 @@ constructor(
         fetchTaskPrioritiesForMonth(YearMonth.now())
     }
 
+    fun refresh() {
+        fetchTasksForDate(_uiState.value.selectedDate)
+        fetchTaskPrioritiesForMonth(_uiState.value.currentMonth)
+    }
+
     fun onDateSelected(date: LocalDate) {
         _uiState.update { it.copy(selectedDate = date) }
         fetchTasksForDate(date)
